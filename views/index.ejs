@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>HEATWATCH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    
+  </head>
+  <body>
+    <div class="container">
+      <div class='heat'>
+         
+         <h1>Hlídač HEATU</h1> 
+          <form class='heat__form' action="/send" method="post">
+            <div class="row">
+                <label for="to">Datum</label>
+                <input type="text" class="form-control" name="date">
+            </div>
+    
+            <div class="row">
+                <label for="subject">Čas</label>
+                <input type="text" class="form-control" name="time">
+            </div>
+    
+            <div class="row">
+                <label for="subject">Email</label>
+                <input type="text" class="form-control" name="email">
+            </div>
+    
+           
+            <div class="row">
+                <button type="submit" class="btn btn-success">Hlídat</button>
+            </div>
+          </form>
+    
+      </div>
+    </div>
+  </body>
+</html>

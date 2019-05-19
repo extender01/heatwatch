@@ -1,0 +1,18 @@
+html {
+    font-family: 'Roboto', sans-serif;
+}
+
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body {
+    background: #2196F3;
+}
+
+.row {
+    display: block;
+}
