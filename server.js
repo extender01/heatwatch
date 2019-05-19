@@ -45,6 +45,36 @@ app.use(express.static('public'));
 //if there are no free places (freeSpots === 0) then recursion via setTimeout is applied, if there is free space then mail is sent and function ends
 
 let userNotified =false
+
+    // RETURNS ARRAY OF PENDING PROMISES, WHICH CHECKS FREE PLACES ON 4 URLS OF URL VARIABLE
+const crawlSpots = (datum, cas) => {
+   return url.map((singleUrl) => {
+        return rp(singleUrl).then((html) => {
+            let free = parseInt($(`td:contains(${datum})`, html).siblings('td').children(`[href*='time=${cas}']`).children('div.free').text(),10) //number of free spo
+            console.log(free);
+            return free;
+        })
+    })
+   
+}
+
+
+const parseResult = (arrArg) => {
+   return  arrArg.find((element) => {
+        return !isNaN(element)
+    })
+}
+
+
+
+
+Promise.all(crawlSpots('20.5', '1900')).then((crawlResult) => {
+    const freeSpots = parseResult(crawlResult);
+    // SELECT CASE FOR 0 / > 0 / UNDEFINED
+})
+
+
+// console.log(checkForSpots('21.5', '1700'));
 //VYRESIT ZE USERNOTIFIED SE PREPISE NA TRUE PRI PRVNIM POST REQUESTU A PAK UZ ZUSTANE PORAD TRUE TAKZE U DALSICH REQUESTU SE NEPROVEDE CALLBACK RES.SEND !!!!!!!!!!!!!
 
 // const promiseHtml = async () => {
@@ -86,28 +116,36 @@ let userNotified =false
 // // console.log(free('20.5', '1800'));
 // free('20.5', '1800')
 
-function test(url) {
-    return rp(url)
-}
+//////////////////////////////////////////////////////
 
-let final = []
+// function test(url) {
+//     return rp(url)
+// }
 
-function delej(arr) {
-    return arr.reduce((promise, item) => {
-        return promise.then((result) => {
-            console.log(`item ${item}`);
-            return test(item).then((result2) => {
-                final.push(result2)
-            })
-        })
-    }, Promise.resolve())
-}
+// let final = []
 
-delej(url).then(() => {console.log('tohle je vysledek', final)})
-    
-    
-//  test();
+// function delej(arr) {
+//     return arr.reduce((promise, item) => {
+//         return promise.then((result) => {
+//             console.log(`probiha promisa ${item}`);
+//             return test(item).then((result2) => {
+//                 console.log('probiha push', item)
+//                 final.push(result2)
+//             })
+//         })
+//     }, Promise.resolve())
+// }
 
+// delej(url).then(() => {console.log('tohle je vysledek')})
+
+    ///////////////////////////////////////////////////////////////
+// function dupej(arr) {
+//     return arr.reduce((promise, item) => {
+//         return promise.then((res) => {
+
+//         })
+//     })
+// }
  
 
 const checkHeatPages = (adresa, datum, cas, callback) => {
