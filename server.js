@@ -14,12 +14,12 @@ const minutes = 15
 const timeout = minutes * 60000;
 const url = ['http://www.heatopava.cz/rezervace/?page_id=2&room=1&week=1#kal','http://www.heatopava.cz/rezervace/?page_id=2&room=1&week=2#kal', 'http://www.heatopava.cz/rezervace/?page_id=2&room=1&week=3#kal', 'http://www.heatopava.cz/rezervace/?page_id=2&room=1&week=4#kal'];
 
-
+// PARSE JSON TO ARRAY OF OBJECT WITH WATCHED HEAT LESSONS
 const guard = () => JSON.parse(fs.readFileSync('guard.json'));
 
 
 const writeToJSON = (jsonDataArg, newItemArg) => {
-   fs.writeFileSync('guard.json', JSON.stringify([...jsonDataArg, newItemArg ],undefined, 4))
+    fs.writeFileSync('guard.json', JSON.stringify([...jsonDataArg, newItemArg ],undefined, 4))
     return [...jsonDataArg, newItemArg ]
 }
 
@@ -47,10 +47,10 @@ app.use(express.static('public'));
 let userNotified =false
 
     // RETURNS ARRAY OF PENDING PROMISES, WHICH CHECKS FREE PLACES ON 4 URLS OF URL VARIABLE
-const crawlSpots = (datum, cas) => {
+const crawlPages = (date, time) => {
    return url.map((singleUrl) => {
         return rp(singleUrl).then((html) => {
-            let free = parseInt($(`td:contains(${datum})`, html).siblings('td').children(`[href*='time=${cas}']`).children('div.free').text(),10) //number of free spo
+            let free = parseInt($(`td:contains(${date})`, html).siblings('td').children(`[href*='time=${time}']`).children('div.free').text(),10) //number of free spo
             console.log(free);
             return free;
         })
@@ -58,20 +58,60 @@ const crawlSpots = (datum, cas) => {
    
 }
 
-
-const parseResult = (arrArg) => {
-   return  arrArg.find((element) => {
+// SEARCHES ARRAY OF RESULTS (IF NO HEAT IS FOUND THEN SOURCE ARRAY IS [NaN,NaN,NaN,NaN], IF IT IS FOUND ONE ELEMENT IS NUMBER), IF HEAT IS FOUND RETURN NUMBER OF FREE SPOTS, IF NOT FOUND RETURN -1
+const deliverFreeSpots = (arrArg) => {
+   const result =  arrArg.find((element) => {
         return !isNaN(element)
-    })
+    });
+
+    if (result === undefined) {
+        return -1
+    } else {
+        return result
+    };
+};
+
+
+
+const respondToNumOfSpots = (crawlResultArg, dateArg, timeArg) => {
+    const freeSpots = deliverFreeSpots(crawlResultArg);
+    console.log('probiha then od promise.all, freeSpots je: ', freeSpots)
+    
+
+   
+
+    if (freeSpots > 0) {
+        console.log(`hura je volnych ${freeSpots} mist`)
+    } else if (freeSpots === 0) {
+        console.log(`bohuzel je volnych ${freeSpots} mist`)
+        setTimeout(() => {checkHeat(dateArg, timeArg)}, 10000)
+    } else if (freeSpots < 0) {
+        console.log('hodina heatu nenalezdena');
+        
+    }
+    return freeSpots
 }
 
 
+const checkHeat = (date, time) => {
+    
+    // PROCESSES ALL PROMISES DETECTING NUMBER OF FREE SPOTS AND SUMS THEM TO SINGLE ARRAY and passes them to .then handler
+    Promise.all(crawlPages(date, time))
+    .then((crawlResult) => {respondToNumOfSpots(crawlResult, date, time)})
+};
+
+const startThat = (date, time, email) => {
+    writeToJSON(guard(), {date, time, email, id: uuid()})
+    checkHeat(date, time);
+
+}
+
+//on restart
+startThat('21.5', '1800', 'extender01@gmail.com');
+
+console.log(guard())
 
 
-Promise.all(crawlSpots('20.5', '1900')).then((crawlResult) => {
-    const freeSpots = parseResult(crawlResult);
-    // SELECT CASE FOR 0 / > 0 / UNDEFINED
-})
 
 
 // console.log(checkForSpots('21.5', '1700'));

@@ -1,14 +1,15 @@
 [
-    {
-        "id": "1df5hwf",
-        "novaPolozka": "cus"
+        {
+        "date": "20.5",
+        "time": "1800",
+        "email": "extender01@gmail.com",
+        "id": "a1ac3420-7ad9-11e9-bf27-9bbddbf228db"
     },
     {
-        "id": "1asdf5fwf",
-        "novaPolozka": "cus"
-    },
-    {
-        "id": "1asdf5ww",
-        "novaPolozka": "cus"
+        "date": "21.5",
+        "time": "1800",
+        "email": "extender01@gmail.com",
+        "id": "ba2416d0-7ad9-11e9-956c-97f10a20a982"
     }
+ 
 ]
