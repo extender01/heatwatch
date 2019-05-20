@@ -73,43 +73,65 @@ const deliverFreeSpots = (arrArg) => {
 
 
 
-const respondToNumOfSpots = (crawlResultArg, dateArg, timeArg) => {
+const respondToNumOfSpots = (crawlResultArg, dateArg, timeArg, idArg) => {
     const freeSpots = deliverFreeSpots(crawlResultArg);
     console.log('probiha then od promise.all, freeSpots je: ', freeSpots)
-    
+    console.log('je id? ', idArg)
 
    
 
     if (freeSpots > 0) {
         console.log(`hura je volnych ${freeSpots} mist`)
+        if(idArg) deleteFromJSON(guard(), idArg);
     } else if (freeSpots === 0) {
         console.log(`bohuzel je volnych ${freeSpots} mist`)
-        setTimeout(() => {checkHeat(dateArg, timeArg)}, 10000)
+        setTimeout(() => {checkHeat(dateArg, timeArg, idArg)}, 10000)
     } else if (freeSpots < 0) {
         console.log('hodina heatu nenalezdena');
+        if(idArg) deleteFromJSON(guard(), idArg);
+
         
     }
     return freeSpots
 }
 
+let numberOfSpots;
 
-const checkHeat = (date, time) => {
+const checkHeat = (date, time, id, callback) => {
     
     // PROCESSES ALL PROMISES DETECTING NUMBER OF FREE SPOTS AND SUMS THEM TO SINGLE ARRAY and passes them to .then handler
     Promise.all(crawlPages(date, time))
-    .then((crawlResult) => {respondToNumOfSpots(crawlResult, date, time)})
+    .then((crawlResult) => {respondToNumOfSpots(crawlResult, date, time, id)})
+    .then((freePlaces) => {callback(freePlaces)})
+    
 };
 
-const startThat = (date, time, email) => {
-    writeToJSON(guard(), {date, time, email, id: uuid()})
-    checkHeat(date, time);
+const checkOnRequest = (date, time, email, callback) => {
+    let resultUponPostRequest;
+    const id = uuid()
+    writeToJSON(guard(), {date, time, email, id})
+    checkHeat(date, time, id, callback);
+    return Promise.resolve('jede')
 
 }
 
-//on restart
-startThat('21.5', '1800', 'extender01@gmail.com');
+//on post request
+// checkOnRequest('21.5', '1800', 'extender01@gmail.com');
 
-console.log(guard())
+// console.log(guard())
+
+const checkOnRestart = () => {
+    const loadedGuards = guard();
+    loadedGuards.forEach((element) => {
+        checkHeat(element.date, element.time, element.id)
+        console.log(`guarding id ${element.id}`)
+    })
+
+}
+
+// checkOnRestart()
+
+
 
 
 
@@ -276,10 +298,11 @@ app.get('/', function (req, res) {
 
 app.post('/send', (req,res) => {
     console.log('muzeme zacinati zaklinati');
-    checkHeatPages(req.body.email, req.body.date, req.body.time, (message) => {
-        // console.log('callback po probehnuti then')
-        res.send(message);
-    });
+    // checkHeatPages(req.body.email, req.body.date, req.body.time, (message) => {
+    //     // console.log('callback po probehnuti then')
+    //     res.send(message);
+    // });
+    checkOnRequest(req.body.date, req.body.time, req.body.email, (number) => {res.send(`volnych mist je ${number}`)})
 
 
 });
