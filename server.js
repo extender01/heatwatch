@@ -10,12 +10,20 @@ const mail = require('./mail');
 
 const app = express();
 const port = 3005;
-const minutes = 15
+const minutes = 15;
 const timeout = minutes * 60000;
 const url = ['http://www.heatopava.cz/rezervace/?page_id=2&room=1&week=1#kal','http://www.heatopava.cz/rezervace/?page_id=2&room=1&week=2#kal', 'http://www.heatopava.cz/rezervace/?page_id=2&room=1&week=3#kal', 'http://www.heatopava.cz/rezervace/?page_id=2&room=1&week=4#kal'];
 
+
+
+
 // PARSE JSON TO ARRAY OF OBJECT WITH WATCHED HEAT LESSONS
 const guard = () => JSON.parse(fs.readFileSync('guard.json'));
+
+let state = guard();
+console.log('state na zacatku', state)
+
+
 
 
 const writeToJSON = (jsonDataArg, newItemArg) => {
@@ -30,7 +38,6 @@ const deleteFromJSON = (jsonDataArg, id) => {
 };
 
 // writeToJSON(guard(), {novaPolozka: 'cus'})
-deleteFromJSON(guard(), '1adf5ewf');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -38,7 +45,7 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 
-
+// mail.sendEmail('extender01@gmail.com', 'nikdy', 'vzdycky')
 
 //go through array of heat time table pages and store value of div which contains number of free spaces into var freeSpots
 //if HEAT class is not found then freeSpots will be NaN,
@@ -72,7 +79,11 @@ const getNumberOfFreeSpots = (arrArg) => {
 };
 
 
-
+const isInState = (id) => {
+    return state.some((element) => {
+        return element.id === id
+    });
+};
 
 
 
@@ -88,9 +99,6 @@ const httpResponseString = (freeSpotsArg, dateArg, timeArg, emailArg) => {
     }
 };
 
-const stopWatching = (id) => {
-    // STOP WATCHING ON DEMAND, create global object with id and state?
-}
 
 
 
@@ -114,26 +122,37 @@ const checkHeat = (data, id) => {
             // NO ID INCOMING MEANS RUNNING AFTER POST REQUEST FOR 1ST TIME, GENERATE AND SAVE NEW ID AND USE IT ON NEXT RECURSION (WON'T RUN AGAIN)
             if(!id) {
                 console.log('id neprislo')
-                writeToJSON(guard(), {date, time, email, noveId, stop: false});
-                setTimeout(() => {checkHeat(data, noveId)}, 10000)
+                writeToJSON(guard(), {date, time, email, id: noveId, stop: false});
+                state.push({date, time, email, id: noveId, stop: false});
+                mail.sendWatching(email, date, time, noveId);
+                console.log('state: ', state)
+                setTimeout(() => {checkHeat(data, noveId)}, 5000)
             } else {
                 console.log('id prislo', id)
-                setTimeout(() => {checkHeat(data, id)}, 10000)
+                console.log('isInState', isInState(id));
+                if (isInState(id)) {
+                    setTimeout(() => {checkHeat(data, id)}, 5000);
+                }
+
             }
-        }
-        else if (freeSpots > 0) {
+        } else if (freeSpots > 0) {
+
 
             console.log(`hura je volnych ${freeSpots} mist, POSLEM ZPRAVU NA ${email}`)
             // ID EXISTS MEANS ITS NOT RUNNING FOR 1ST TIME SO DELETE FROM JSON AND SEND MESSAGE (FOR FIRST TIME NO NEED TO SEND MESSAGE)
             if(id) {
                 deleteFromJSON(guard(), id);
-                mail.sendEmail(email, date, time)
+                removeFromState(id)
+                mail.sendFoundSpot(email, date, time)
             } 
 
         } else if (freeSpots < 0) {
             
             console.log('hodina heatu nenalezdena');
-            if(id) deleteFromJSON(guard(), id);
+            if(id) {
+                deleteFromJSON(guard(), id);
+                removeFromState(id);
+            } 
 
         } else {
 
@@ -154,8 +173,7 @@ const checkHeat = (data, id) => {
 
 const checkOnRequest = (data) => {
    
-    // const id = uuid();
-    // writeToJSON(guard(), {date, time, email, id});
+  
     
     return checkHeat(data, undefined) //undefined beacuse no id for 1st time
     .then((freeSpots) => {
@@ -168,21 +186,31 @@ const checkOnRequest = (data) => {
 
 };
 
-
 const checkOnRestart = () => {
     const loadedGuards = guard();
+    state = loadedGuards;
     loadedGuards.forEach((element) => {
-        checkHeat(element.date, element.time, element.id)
+        checkHeat(element, element.id)
         console.log(`guarding id ${element.id}`)
     })
 
 }
 
-// checkOnRestart()
+
+checkOnRestart()
 
 
 
 
+
+
+
+
+const removeFromState = (id) => {
+    state = state.filter((element) => {
+        return element.id !== id
+    });
+};
 
 
 
@@ -206,6 +234,9 @@ app.post('/send', (req,res) => {
 });
 
 app.get('/rusim/:id', (req, res) => {
+    removeFromState(req.params.id)
+    deleteFromJSON(guard(), req.params.id);
+
     res.send(req.params.id)
 })
 
