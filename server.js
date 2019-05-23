@@ -78,6 +78,16 @@ const getNumberOfFreeSpots = (arrArg) => {
     };
 };
 
+const parseFormInput = (inputObject) => {
+    let outputObject = {};
+    outputObject.date = inputObject.date.slice(0, -1);
+    outputObject.time = inputObject.time.slice(0, 2) + inputObject.time.slice(3);
+    outputObject.email = inputObject.email;
+
+    console.log(outputObject);
+    return outputObject
+};
+
 
 const isInState = (id) => {
     return state.some((element) => {
@@ -126,12 +136,12 @@ const checkHeat = (data, id) => {
                 state.push({date, time, email, id: noveId, stop: false});
                 mail.sendWatching(email, date, time, noveId);
                 console.log('state: ', state)
-                setTimeout(() => {checkHeat(data, noveId)}, 5000)
+                setTimeout(() => {checkHeat(data, noveId)}, 600000)
             } else {
                 console.log('id prislo', id)
                 console.log('isInState', isInState(id));
                 if (isInState(id)) {
-                    setTimeout(() => {checkHeat(data, id)}, 5000);
+                    setTimeout(() => {checkHeat(data, id)}, 600000);
                 }
 
             }
@@ -173,9 +183,9 @@ const checkHeat = (data, id) => {
 
 const checkOnRequest = (data) => {
    
-  
     
-    return checkHeat(data, undefined) //undefined beacuse no id for 1st time
+    
+    return checkHeat(parseFormInput(data), undefined) //undefined beacuse no id for 1st time
     .then((freeSpots) => {
         
         const responseMessage = httpResponseString(freeSpots, data.date, data.time, data.email)
@@ -221,10 +231,7 @@ app.get('/', function (req, res) {
 
 app.post('/send', (req,res) => {
     console.log('muzeme zacinati zaklinati');
-
-    // checkOnRequest(req.body.date, req.body.time, req.body.email)
     checkOnRequest({date: req.body.date, time: req.body.time, email: req.body.email})
-
     .then((message) => {
         res.send(message)
     })

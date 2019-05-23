@@ -2,17 +2,51 @@ html {
     font-family: 'Roboto', sans-serif;
 }
 
+h1 {
+    text-align: center;
+}
 
 .container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+
+.heat {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
 body {
-    background: #2196F3;
+    /* background: #2196F3; */
 }
 
-.row {
+/* .heat {
+    max-width: 700px;
+    margin: 0 auto;
+} */
+
+/* .row {
     display: block;
+} */
+
+
+.form-input {
+    width: 100%;
+    margin: 1rem 0;
+    border: none;
+    padding: .5rem .2rem;
+}
+
+.form-label {
+    width: 3rem;
+}
+
+.heat-form {
+    background: rgb(231, 231, 231);
+    padding: 2rem 1rem;
+    border-radius: .5rem;
+    width:100%;
+    max-width:500px;
 }

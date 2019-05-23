@@ -10,32 +10,39 @@
   </head>
   <body>
     <div class="container">
-      <div class='heat'>
+      
          
-         <h1>Hlídač HEATU</h1> 
-          <form class='heat__form' action="/send" method="post">
-            <div class="row">
-                <label for="to">Datum</label>
-                <input type="text" class="form-control" name="date">
-            </div>
-    
-            <div class="row">
-                <label for="subject">Čas</label>
-                <input type="text" class="form-control" name="time">
-            </div>
-    
-            <div class="row">
-                <label for="subject">Email</label>
-                <input type="text" class="form-control" name="email">
-            </div>
-    
-           
-            <div class="row">
-                <button type="submit" class="btn btn-success">Hlídat</button>
-            </div>
-          </form>
-    
-      </div>
+         <h1>Hlídač HEATu</h1> 
+          <div class='heat'>
+            <form class='heat-form' action="/send" method="post">
+              <div class="row">
+                  <label class="form-label" for="to">Datum DD.MM</label>
+                  <input type="text" class="form-input" name="date">
+              </div>
+      
+              <div class="row">
+                  <label class="form-label"  for="subject">Čas HH.MM</label>
+                  <input list="times" class="form-input" name="time">
+                  <datalist id="times">
+                    <option value="1600" >
+                    <option value="1700" >
+                    <option value="1800" >
+
+                  </datalist>
+              </div>
+      
+              <div class="row">
+                  <label class="form-label" for="subject">Email</label>
+                  <input type="text" class="form-input" name="email">
+              </div>
+      
+            
+              <div class="row">
+                  <button type="submit" class="btn btn-success">Hlídat</button>
+              </div>
+            </form>
+          </div>
+      
     </div>
   </body>
 </html>
